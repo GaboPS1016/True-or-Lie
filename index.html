@@ -1,0 +1,591 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>True-or-Lie - Solucionador de Caballeros y Truhanes</title>
+<style>
+  * { box-sizing: border-box; }
+  body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: #f5f7fa;
+    color: #222;
+    margin: 0;
+    padding: 20px;
+    line-height: 1.6;
+  }
+  .container { max-width: 1000px; margin: 0 auto; }
+  header {
+    background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
+    color: white;
+    padding: 20px;
+    border-radius: 10px 10px 0 0;
+    text-align: center;
+  }
+  header h1 { margin: 0; font-size: 1.6rem; }
+  header p { margin: 5px 0 0; opacity: 0.9; font-size: 0.95rem; }
+
+  .toolbar {
+    background: white;
+    padding: 15px;
+    border-radius: 0 0 10px 10px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    margin-bottom: 20px;
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+
+  select, button {
+    padding: 10px 14px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    font-size: 0.95rem;
+    background: white;
+    cursor: pointer;
+  }
+  button.primary { background: #2563eb; color: white; border-color: #2563eb; }
+  button.primary:hover { background: #1d4ed8; }
+  button.secondary { background: #f1f5f9; border-color: #cbd5e1; }
+  button.secondary:hover { background: #e2e8f0; }
+  button.danger { background: #dc2626; color: white; border-color: #dc2626; }
+  button.danger:hover { background: #b91c1c; }
+
+  .panel {
+    background: white;
+    border-radius: 10px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    margin-bottom: 20px;
+    overflow: hidden;
+  }
+  .panel-header {
+    background: #f8fafc;
+    padding: 12px 20px;
+    border-bottom: 1px solid #e2e8f0;
+    font-weight: 600;
+    color: #475569;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  textarea {
+    width: 100%;
+    height: 260px;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 0.95rem;
+    border: none;
+    padding: 16px 20px;
+    resize: vertical;
+    outline: none;
+  }
+  textarea:focus { background: #f8fafc; }
+
+  #resultado {
+    padding: 20px;
+    min-height: 100px;
+  }
+  .solucion {
+    border: 1px solid #e2e8f0;
+    border-left: 4px solid #2563eb;
+    background: #f8fafc;
+    padding: 12px 16px;
+    margin: 10px 0;
+    border-radius: 6px;
+  }
+  .solucion h3 { margin: 0 0 8px 0; color: #1e3a8a; font-size: 1rem; }
+  .solucion p { margin: 4px 0; font-size: 0.95rem; }
+  .solucion p b { color: #374151; }
+
+  .estado { font-weight: 700; font-size: 1.05rem; margin-top: 12px; padding: 10px; border-radius: 6px; }
+  .estado.unico { background: #dcfce7; color: #166534; border: 1px solid #86efac; }
+  .estado.multiplo { background: #fef9c3; color: #713f12; border: 1px solid #fcd34d; }
+  .estado.none { background: #fee2e2; color: #991b1b; border: 1px solid #fca5a5; }
+
+  .leyenda {
+    font-size: 0.85rem;
+    color: #64748b;
+    margin-top: 10px;
+    padding: 12px;
+    background: #f1f5f9;
+    border-radius: 6px;
+  }
+  .leyenda b { color: #1e3a8a; }
+
+  .help {
+    margin-top: 15px;
+    font-size: 0.85rem;
+    color: #64748b;
+  }
+  .help code {
+    background: #f1f5f9;
+    padding: 2px 6px;
+    border-radius: 4px;
+    color: #1e3a8a;
+  }
+
+  #carga { display: none; text-align: center; padding: 20px; color: #2563eb; font-weight: 600; }
+  .tiempo { font-size: 0.8rem; color: #64748b; margin-top: 6px; }
+  :root { --ink:#17233c; --muted:#66738d; --line:#e4e9f2; --blue:#4568e8; --violet:#7357d8; }
+  body { background:radial-gradient(ellipse at 10% 0%,#e9edff 0,transparent 34%),radial-gradient(ellipse at 100% 15%,#f5eaff 0,transparent 29%),#f6f7fb;color:var(--ink);padding:32px 20px 64px;font-family:Inter,"Segoe UI",sans-serif; }
+  .container{max-width:960px} header{background:transparent;color:var(--ink);padding:20px 8px 8px} header h1{font-size:clamp(2rem,5vw,3rem);letter-spacing:-.045em} header p{max-width:590px;margin:10px auto;color:var(--muted);font-size:1.05rem}
+  .toolbar{background:transparent;box-shadow:none;padding:8px 0;justify-content:space-between} select,button{border-radius:11px} select{border-color:var(--line);min-height:44px} button{font-weight:700;transition:transform .16s,box-shadow .16s} button:hover{transform:translateY(-1px)} button.primary{background:linear-gradient(130deg,var(--blue),var(--violet));box-shadow:0 7px 16px #615ce044} button.primary:hover{background:linear-gradient(130deg,#3659db,#6549ca)} button.secondary{background:#eef1f7;border-color:#eef1f7;color:#45516a}
+  .panel{padding:24px;border:1px solid #fff;border-radius:18px;background:#ffffffdc;box-shadow:0 12px 36px #34456a0c;margin-bottom:18px}.panel-header{background:transparent;border:0;padding:0 0 18px;color:var(--ink)}
+  .personajes{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:9px;padding:4px 0}.personaje-btn{min-height:46px;border:1px solid var(--line);border-radius:12px;background:white;color:#7a8499}.personaje-btn.active{border-color:#a7afff;background:#f0f1ff;color:#4f50bb;font-weight:800}
+  .declaraciones{display:grid;gap:12px}.declaracion{display:grid;grid-template-columns:42px minmax(130px,1fr) minmax(0,2fr);align-items:center;gap:12px;padding:13px;border:1px solid var(--line);border-radius:14px;background:white}.avatar{display:grid;place-items:center;width:40px;height:40px;border-radius:13px;background:#f0efff;color:#5b52ca;font-weight:850}.frase{display:flex;align-items:center;flex-wrap:wrap;gap:7px;color:#65718a;font-size:.9rem}.frase select{min-height:38px;padding:6px 30px 6px 10px;border-radius:9px;font-size:.88rem}.frase .statement{display:flex;align-items:center;flex-wrap:wrap;gap:7px}.frase select:disabled{display:none}
+  .step{display:inline-grid;place-items:center;width:30px;height:30px;margin-right:10px;border-radius:10px;background:#eeefff;color:#5b58d1;font-weight:800}.hint{margin:8px 0 0;color:var(--muted);font-size:.86rem}.actions{display:flex;justify-content:center;gap:10px;margin:20px 0}.solucion{border:1px solid var(--line);border-left:4px solid var(--blue);border-radius:14px;background:white;padding:16px;margin:12px 0}.roles{display:flex;flex-wrap:wrap;gap:9px}.role{padding:8px 12px;border-radius:10px;background:#f4f6fa}.role.caballero{background:#e9f7ef;color:#247247}.role.truhan{background:#fff0ea;color:#a84d34}.estado{margin-top:14px;padding:14px 16px;border-radius:13px}.estado.unico{background:#eaf7ef;color:#247247}.estado.multiplo{background:#fff7df;color:#8a6415}.estado.none{background:#fff0ee;color:#a43e37}.tiempo{text-align:right;color:var(--muted)}#carga{color:var(--muted)}
+  .terms{display:grid;gap:8px}.term-row{display:flex;align-items:center;flex-wrap:wrap;gap:8px}.term-row select{min-height:36px;padding:5px 25px 5px 8px;font-size:.84rem}.term-row .operator{font-size:.8rem;font-weight:800;color:#6657c8}.mini-btn{padding:6px 10px;background:#eef1f7;color:#4d5b78;font-size:.82rem}.remove-btn{padding:4px 8px;background:#fff0ee;color:#a43e37;font-size:.82rem}
+  .fact-list{display:grid;gap:9px;margin-bottom:12px}.fact-row{display:flex;align-items:center;flex-wrap:wrap;gap:9px;padding:12px;border:1px solid var(--line);border-radius:12px;background:white}.fact-controls{display:inline-flex;align-items:center;flex-wrap:wrap;gap:7px}.fact-empty{padding:14px;border:1px dashed var(--line);border-radius:12px;color:var(--muted);font-size:.9rem}
+  @media(max-width:680px){body{padding:18px 14px 40px}.toolbar{align-items:stretch;flex-direction:column}.toolbar select{width:100%}.personajes{grid-template-columns:repeat(3,1fr)}.declaracion{grid-template-columns:38px 1fr;gap:10px}.avatar{width:36px;height:36px}.frase{grid-column:2}.panel{padding:18px}}
+</style>
+</head>
+<body>
+
+<div class="container">
+  <header>
+    <span style="color:#574acb;font-size:.8rem;font-weight:800;letter-spacing:.14em;text-transform:uppercase">✦ Lógica para jugar</span>
+    <h1>True or Lie</h1>
+    <p>Arma tu acertijo de caballeros y truhanes. Elige quién participa, completa sus declaraciones y deja que la lógica encuentre la respuesta.</p>
+  </header>
+
+  <div class="toolbar">
+    <label for="selectEjemplo">Empezar con un ejemplo</label>
+    <select id="selectEjemplo" onchange="cargarEjemploSeleccionado()">
+      <option value="ej14">Ejercicio 14 — A dice: B es caballero / B dice: Si A es caballero entonces C lo es</option>
+      <option value="ej15">Ejercicio 15 — A dice: B y C son del mismo tipo / B dice: Soy truhan o caballero</option>
+      <option value="personalizado">Empezar desde cero</option>
+    </select>
+  </div>
+
+  <div class="panel">
+    <div class="panel-header">
+      <span><i class="step">1</i>¿Quiénes aparecen en el acertijo?</span>
+    </div>
+    <div class="personajes" id="personajes"></div>
+    <p class="hint">Selecciona hasta seis personajes. No hace falta que todos tengan una declaración.</p>
+  </div>
+  <div class="panel">
+    <div class="panel-header"><span><i class="step">2</i>¿Qué dice cada personaje?</span></div>
+    <div class="declaraciones" id="declaraciones"></div>
+  </div>
+  <div class="panel">
+    <div class="panel-header"><span><i class="step">3</i>Hechos que siempre son verdad</span></div>
+    <p class="hint" style="margin:-8px 0 15px">Agrega información conocida del acertijo. Cada hecho debe cumplirse en todas las soluciones.</p>
+    <div class="fact-list" id="hechos"></div>
+    <button type="button" class="mini-btn" onclick="agregarHecho()">＋ Añadir hecho</button>
+  </div>
+  <div class="actions"><button class="primary" onclick="resolver()">✦ Resolver acertijo</button><button class="secondary" onclick="limpiar()">Limpiar resultado</button></div>
+  <div id="carga">Resolviendo... por favor espera</div>
+
+  <div id="resultado"></div>
+
+  <p class="hint" style="text-align:center;margin-top:24px">Los caballeros siempre dicen la verdad · Los truhanes siempre mienten</p>
+
+</div>
+
+<script>
+// ============================================================
+// MOTOR LÓGICO EN JAVASCRIPT NATIVO (instantáneo)
+// ============================================================
+
+// --- Parser de términos tipo Prolog a árbol JS ---
+
+function tokenizar(s) {
+  const tokens = [];
+  let i = 0;
+  while (i < s.length) {
+    if (/\s/.test(s[i])) { i++; continue; }
+    if (s[i] === '(' || s[i] === ')' || s[i] === ',' || s[i] === '[' || s[i] === ']') {
+      tokens.push({ tipo: 'simbolo', valor: s[i++] }); continue;
+    }
+    if (/\d/.test(s[i])) {
+      let num = '';
+      while (i < s.length && /\d/.test(s[i])) num += s[i++];
+      tokens.push({ tipo: 'numero', valor: Number(num) }); continue;
+    }
+    if (/[a-z_]/.test(s[i])) {
+      let id = '';
+      while (i < s.length && (/[a-z0-9_]/.test(s[i]))) id += s[i++];
+      tokens.push({ tipo: 'ident', valor: id }); continue;
+    }
+    throw new Error(`Caracter inesperado: '${s[i]}' en posición ${i}`);
+  }
+  return tokens;
+}
+
+function parsearTermino(tokens, pos) {
+  if (pos >= tokens.length) throw new Error('Fin inesperado de entrada');
+  const tok = tokens[pos];
+
+  if (tok.tipo === 'ident') {
+    const nombre = tok.valor;
+    if (pos + 1 < tokens.length && tokens[pos+1].tipo === 'simbolo' && tokens[pos+1].valor === '(') {
+      const args = [];
+      let p = pos + 2;
+      if (tokens[p] && tokens[p].tipo === 'simbolo' && tokens[p].valor === ')') {
+        return { nodo: { tipo: 'llamada', nombre, args: [] }, fin: p + 1 };
+      }
+      while (true) {
+        let arg, np;
+        ({ nodo: arg, fin: np } = parsearTermino(tokens, p));
+        args.push(arg);
+        p = np;
+        if (tokens[p] && tokens[p].tipo === 'simbolo' && tokens[p].valor === ',') { p++; continue; }
+        if (tokens[p] && tokens[p].tipo === 'simbolo' && tokens[p].valor === ')') { p++; break; }
+        throw new Error(`Se esperaba ')' o ',' después del argumento`);
+      }
+      return { nodo: { tipo: 'llamada', nombre, args }, fin: p };
+    } else if (pos + 1 < tokens.length && tokens[pos+1].tipo === 'simbolo' && tokens[pos+1].valor === '[') {
+      const elems = [];
+      let p = pos + 2;
+      if (tokens[p] && tokens[p].tipo === 'simbolo' && tokens[p].valor === ']') {
+        return { nodo: { tipo: 'lista', elems: [] }, fin: p + 1 };
+      }
+      while (true) {
+        let elem, np;
+        ({ nodo: elem, fin: np } = parsearTermino(tokens, p));
+        elems.push(elem);
+        p = np;
+        if (tokens[p] && tokens[p].tipo === 'simbolo' && tokens[p].valor === ',') { p++; continue; }
+        if (tokens[p] && tokens[p].tipo === 'simbolo' && tokens[p].valor === ']') { p++; break; }
+        throw new Error(`Se esperaba ']' o ',' después del elemento de lista`);
+      }
+      return { nodo: { tipo: 'lista', elems }, fin: p };
+    } else {
+      return { nodo: { tipo: 'ident', valor: nombre }, fin: pos + 1 };
+    }
+  } else if (tok.tipo === 'numero') {
+    return { nodo: { tipo: 'numero', valor: tok.valor }, fin: pos + 1 };
+  } else if (tok.tipo === 'simbolo' && tok.valor === '[') {
+    const elems = [];
+    let p = pos + 1;
+    if (tokens[p] && tokens[p].tipo === 'simbolo' && tokens[p].valor === ']') {
+      return { nodo: { tipo: 'lista', elems: [] }, fin: p + 1 };
+    }
+    while (true) {
+      let elem, np;
+      ({ nodo: elem, fin: np } = parsearTermino(tokens, p));
+      elems.push(elem);
+      p = np;
+      if (tokens[p] && tokens[p].tipo === 'simbolo' && tokens[p].valor === ',') { p++; continue; }
+      if (tokens[p] && tokens[p].tipo === 'simbolo' && tokens[p].valor === ']') { p++; break; }
+      throw new Error(`Se esperaba ']' o ','`);
+    }
+    return { nodo: { tipo: 'lista', elems }, fin: p };
+  }
+  throw new Error(`Token inesperado: ${JSON.stringify(tok)}`);
+}
+
+function parsear(s) {
+  const tokens = tokenizar(s);
+  const { nodo, fin } = parsearTermino(tokens, 0);
+  if (fin !== tokens.length) throw new Error('Tokens sobrantes después del término');
+  return nodo;
+}
+
+// --- Evaluador de fórmulas proposicionales ---
+
+// entorno: objeto { a: true/false, ... } donde true = caballero, false = truhan
+function evaluar(term, env) {
+  if (term.tipo === 'ident') {
+    return env[term.valor] !== undefined ? env[term.valor] : false;
+  }
+  if (term.tipo === 'numero') return term.valor !== 0;
+  if (term.tipo === 'lista') {
+    return term.elems.map(e => e.valor);
+  }
+  if (term.tipo === 'llamada') {
+    const { nombre, args } = term;
+    switch (nombre) {
+      case 'cab': return env[args[0].valor] === true;
+      case 'tru': return env[args[0].valor] === false;
+      case 'no': return !evaluar(args[0], env);
+      case 'y': return evaluar(args[0], env) && evaluar(args[1], env);
+      case 'o': return evaluar(args[0], env) || evaluar(args[1], env);
+      case 'si': return !evaluar(args[0], env) || evaluar(args[1], env);
+      case 'sii': return evaluar(args[0], env) === evaluar(args[1], env);
+      case 'exactamente': {
+        const N = args[0].valor;
+        const lista = args[1];
+        const nombres = lista.tipo === 'lista' ? lista.elems.map(e => e.valor) : [lista.valor];
+        let cont = 0;
+        for (const nom of nombres) if (env[nom] === false) cont++;
+        return cont === N;
+      }
+      default:
+        throw new Error(`Función desconocida: ${nombre}`);
+    }
+  }
+  throw new Error(`Término desconocido al evaluar`);
+}
+
+// --- Extraer datos de los hechos (maneja paréntesis anidados) ---
+
+function extraerHechos(texto) {
+  // Admitir comentarios de línea y puntos finales habituales en Prolog.
+  texto = texto.replace(/%[^\r\n]*/g, '').replace(/\./g, '');
+  // Buscar personajes(problema, [...]).
+  const idxPersonajes = texto.indexOf('personajes(problema,');
+  if (idxPersonajes === -1) throw new Error('No se encontró: personajes(problema, [...]).');
+
+  let p = texto.indexOf('[', idxPersonajes);
+  if (p === -1) throw new Error('Se esperaba [ después de personajes(problema,');
+
+  let depth = 0;
+  let finLista = -1;
+  for (let i = p; i < texto.length; i++) {
+    if (texto[i] === '[') depth++;
+    else if (texto[i] === ']') { depth--; if (depth === 0) { finLista = i; break; } }
+  }
+  if (finLista === -1) throw new Error('No se encontró el cierre ] de la lista de personajes');
+
+  let dopo = finLista + 1;
+  while (dopo < texto.length && /\s/.test(texto[dopo])) dopo++;
+  if (texto[dopo] !== ')') throw new Error('Se esperaba ) después de la lista de personajes');
+
+  const listaStr = texto.substring(p, finLista + 1);
+  const listaAST = parsear(listaStr);
+  const personajes = listaAST.elems.map(e => e.valor);
+  if (personajes.some(p => !p || !/^[a-z][a-z0-9_]*$/.test(p))) throw new Error('Los personajes deben ser átomos en minúscula (a, b, c...).');
+  if (new Set(personajes).size !== personajes.length) throw new Error('La lista de personajes contiene nombres duplicados.');
+  if (personajes.length > 20) throw new Error('El solucionador admite hasta 20 personajes para evitar cálculos excesivos.');
+
+  // Buscar declara(problema, X, FORMULA). — maneja paréntesis anidados
+  const declaraciones = [];
+  let busqueda = 0;
+  while (true) {
+    const idxDeclara = texto.indexOf('declara(problema,', busqueda);
+    if (idxDeclara === -1) break;
+
+    let q = idxDeclara + 'declara(problema,'.length;
+    while (q < texto.length && /\s/.test(texto[q])) q++;
+
+    let startNom = q;
+    while (q < texto.length && /[a-z0-9_]/.test(texto[q])) q++;
+    const quien = texto.substring(startNom, q);
+    if (!quien) throw new Error('Se esperaba nombre de personaje en declara');
+
+    while (q < texto.length && /\s/.test(texto[q])) q++;
+    if (texto[q] !== ',') throw new Error('Se esperaba , después del nombre en declara');
+    q++;
+    while (q < texto.length && /\s/.test(texto[q])) q++;
+
+    let depth = 0;
+    let startFormula = q;
+    let finFormula = -1;
+    for (let i = q; i < texto.length; i++) {
+      if (texto[i] === '(') depth++;
+      else if (texto[i] === ')') {
+        if (depth === 0) { finFormula = i; break; }
+        depth--;
+      }
+    }
+    if (finFormula === -1) throw new Error('No se encontró el cierre ) de la fórmula en declara');
+
+    const formulaStr = texto.substring(startFormula, finFormula);
+    const formulaAST = parsear(formulaStr);
+    declaraciones.push({ quien, formula: formulaAST });
+
+    busqueda = finFormula + 1;
+  }
+
+  if (declaraciones.length === 0) throw new Error('No se encontró ninguna declaración activa declara(problema, ...).');
+  const incluidos = new Set(personajes);
+  const declarantes = new Set();
+  for (const d of declaraciones) {
+    if (!incluidos.has(d.quien)) throw new Error(`'${d.quien}' declara, pero no aparece en la lista de personajes.`);
+    if (declarantes.has(d.quien)) throw new Error(`Hay más de una declaración para '${d.quien}'.`);
+    declarantes.add(d.quien);
+    validarFormula(d.formula, incluidos);
+  }
+  return { personajes, declaraciones };
+}
+
+function validarFormula(t, personajes) {
+  if (!t || t.tipo !== 'llamada') throw new Error('La fórmula debe usar un constructor como cab(a), no(cab(a)) o exactamente(...).');
+  const aridades = { cab: 1, tru: 1, no: 1, y: 2, o: 2, si: 2, sii: 2, exactamente: 2 };
+  if (!Object.hasOwn(aridades, t.nombre)) throw new Error(`Constructor no soportado: ${t.nombre}. Se admiten cab, tru, no, y, o, si, sii y exactamente.`);
+  if (t.args.length !== aridades[t.nombre]) throw new Error(`${t.nombre} requiere ${aridades[t.nombre]} argumento(s).`);
+  if (t.nombre === 'cab' || t.nombre === 'tru') {
+    const x = t.args[0];
+    if (x.tipo !== 'ident' || !personajes.has(x.valor)) throw new Error(`${t.nombre} debe referirse a un personaje incluido en personajes(...).`);
+    return;
+  }
+  if (t.nombre === 'exactamente') {
+    const [n, lista] = t.args;
+    if (n.tipo !== 'numero' || lista.tipo !== 'lista' || lista.elems.some(x => x.tipo !== 'ident' || !personajes.has(x.valor))) throw new Error('exactamente requiere exactamente(N, [personajes...]).');
+    return;
+  }
+  for (const arg of t.args) validarFormula(arg, personajes);
+}
+
+// --- Resolver ---
+
+function resolverProblema(texto, hechos = []) {
+  const { personajes, declaraciones } = extraerHechos(texto);
+  const n = personajes.length;
+  const soluciones = [];
+
+  for (let mask = 0; mask < (1 << n); mask++) {
+    const env = {};
+    for (let i = 0; i < n; i++) {
+      env[personajes[i]] = (mask >> i) & 1 ? true : false;
+    }
+
+    let consistente = hechos.every(formula => evaluar(formula, env));
+    for (const decl of declaraciones) {
+      const valorF = evaluar(decl.formula, env);
+      const esCaballero = env[decl.quien] === true;
+      if (esCaballero !== valorF) {
+        consistente = false;
+        break;
+      }
+    }
+
+    if (consistente) {
+      const asignacion = {};
+      for (const p of personajes) asignacion[p] = env[p] ? 'caballero' : 'truhan';
+      soluciones.push(asignacion);
+    }
+  }
+
+  return soluciones;
+}
+
+// ============================================================
+// EJEMPLOS PREDEFINIDOS
+// ============================================================
+
+const letras = ['a','b','c','d','e','f'];
+let seleccionados = ['a','b','c'];
+let dichos = {a:{tipo:'cab',x:'b'},b:{tipo:'si',x:'a',y:'c'},c:{tipo:'ninguna'}};
+let hechos = [];
+const tiposFrase = [['ninguna','No declara'],['cab','X es caballero'],['tru','X es truhan'],['mismo','X e Y son del mismo tipo'],['distinto','X e Y son de distinto tipo'],['si','Si X es caballero, Y también'],['y','X e Y son caballeros'],['o','X o Y es caballero'],['cualquiera','Soy truhan o caballero'],['exactamente','Exactamente N son truhanes'],['todosCab','Todos son caballeros'],['ningunoCab','Ninguno es caballero'],['todosTru','Todos son truhanes'],['ningunoTru','Ninguno es truhan'],['compuesta','Combinar condiciones con AND / OR']];
+function opcionesPersonaje(actual) { return seleccionados.map(p => `<option value="${p}" ${p===actual?'selected':''}>${p.toUpperCase()}</option>`).join(''); }
+function cargarEjemploSeleccionado() {
+  const k=document.getElementById('selectEjemplo').value; seleccionados=['a','b','c'];
+  dichos = k==='ej15' ? {a:{tipo:'mismo',x:'b',y:'c'},b:{tipo:'cualquiera'},c:{tipo:'ninguna'}} : k==='personalizado' ? Object.fromEntries(seleccionados.map(p=>[p,{tipo:'ninguna'}])) : {a:{tipo:'cab',x:'b'},b:{tipo:'si',x:'a',y:'c'},c:{tipo:'ninguna'}};
+  hechos=[]; renderFormulario(); renderHechos(); limpiar();
+}
+function renderFormulario() {
+  document.getElementById('personajes').innerHTML=letras.map(p=>`<button type="button" class="personaje-btn ${seleccionados.includes(p)?'active':''}" aria-pressed="${seleccionados.includes(p)}" onclick="alternarPersonaje('${p}')">${p.toUpperCase()}</button>`).join('');
+  const box=document.getElementById('declaraciones');
+  if(!seleccionados.length){box.innerHTML='<div class="empty">Selecciona al menos un personaje para empezar.</div>';return;}
+  box.innerHTML=seleccionados.map(p=>{const d=dichos[p]||{tipo:'ninguna'};const who=(field,value)=>`<select data-field="${field}" data-person="${p}"><option value="">?</option>${opcionesPersonaje(value)}</select>`;let frase='';
+    if(['cab','tru'].includes(d.tipo)) frase=`${who('x',d.x)} es ${d.tipo==='cab'?'caballero':'truhan'}`;
+    else if(['mismo','distinto','si','y','o'].includes(d.tipo)) frase=d.tipo==='si'?`Si ${who('x',d.x)} es caballero, ${who('y',d.y)} también`:`${who('x',d.x)} ${d.tipo==='y'?'y':'o'} ${who('y',d.y)} ${d.tipo==='mismo'?'son del mismo tipo':d.tipo==='distinto'?'son de distinto tipo':d.tipo==='y'?'son caballeros':'es caballero'}`;
+    else if(d.tipo==='cualquiera') frase='es truhan o caballero';
+    else if(d.tipo==='exactamente') frase=`<select data-field="n" data-person="${p}">${seleccionados.map((_,i)=>`<option value="${i+1}" ${Number(d.n||1)===i+1?'selected':''}>${i+1}</option>`).join('')}</select> de todos son truhanes`;
+    else if(['todosCab','ningunoCab','todosTru','ningunoTru'].includes(d.tipo)) frase=({todosCab:'todos son caballeros',ningunoCab:'ninguno es caballero',todosTru:'todos son truhanes',ningunoTru:'ninguno es truhan'})[d.tipo];
+    else if(d.tipo==='compuesta') frase=`<div class="terms">${(d.terms||[]).map((t,i)=>`<div class="term-row"><select data-field="termType" data-person="${p}" data-index="${i}"><option value="cab" ${t.tipo==='cab'?'selected':''}>es caballero</option><option value="tru" ${t.tipo==='tru'?'selected':''}>es truhan</option></select>${who(`termX${i}`,t.x)}${i<d.terms.length-1?`<select data-field="operator" data-person="${p}" data-index="${i}"><option value="y" ${d.ops[i]==='y'?'selected':''}>AND · y</option><option value="o" ${d.ops[i]==='o'?'selected':''}>OR · o</option></select>`:''}${d.terms.length>2?`<button type="button" class="remove-btn" data-field="removeTerm" data-person="${p}" data-index="${i}">Quitar</button>`:''}</div>`).join('')}<button type="button" class="mini-btn" data-field="addTerm" data-person="${p}">＋ Añadir condición</button><span class="hint">Las condiciones se agrupan de izquierda a derecha.</span></div>`;
+    else frase='<span class="hint">No declara.</span>';
+    return `<div class="declaracion"><span class="avatar">${p.toUpperCase()}</span><div><b>${p.toUpperCase()}</b> dice:</div><div class="frase"><select data-field="tipo" data-person="${p}">${tiposFrase.map(([v,l])=>`<option value="${v}" ${d.tipo===v?'selected':''}>${l}</option>`).join('')}</select><span class="statement">${frase}</span></div></div>`;
+  }).join('');
+  box.querySelectorAll('select').forEach(s=>s.addEventListener('change',e=>actualizarDicho(e.target)));
+  box.querySelectorAll('button[data-field]').forEach(b=>b.addEventListener('click',e=>actualizarDicho(e.currentTarget)));
+}
+function alternarPersonaje(p){if(seleccionados.includes(p)){if(seleccionados.length===1)return;seleccionados=seleccionados.filter(x=>x!==p);}else seleccionados=[...seleccionados,p].sort((a,b)=>letras.indexOf(a)-letras.indexOf(b));renderFormulario();renderHechos();}
+function actualizarDicho(el){const p=el.dataset.person,f=el.dataset.field;dichos[p]=dichos[p]||{};const d=dichos[p];if(f==='tipo'){const x=seleccionados.find(x=>x!==p)||p;dichos[p]={tipo:el.value,x,y:x,n:1,terms:[{tipo:'cab',x},{tipo:'tru',x}],ops:['y']};}else if(f==='addTerm'){d.terms.push({tipo:'cab',x:seleccionados[0]});d.ops.push('y');}else if(f==='removeTerm'){const i=Number(el.dataset.index);d.terms.splice(i,1);if(i<d.ops.length)d.ops.splice(i,1);else d.ops.splice(i-1,1);}else if(f==='operator')d.ops[Number(el.dataset.index)]=el.value;else if(f==='termType')d.terms[Number(el.dataset.index)].tipo=el.value;else if(f.startsWith('termX'))d.terms[Number(f.slice(5))].x=el.value;else d[f]=el.value;renderFormulario();}
+function formulaCompuesta(d){if(!d.terms||d.terms.length<2)throw new Error('Añade al menos dos condiciones a la proposición compuesta.');if(d.terms.some(t=>!t.x||!seleccionados.includes(t.x)))throw new Error('Elige un personaje válido en cada condición compuesta.');let f=`${d.terms[0].tipo}(${d.terms[0].x})`;for(let i=1;i<d.terms.length;i++)f=`${d.ops[i-1]==='o'?'o':'y'}(${f}, ${d.terms[i].tipo}(${d.terms[i].x}))`;return f;}
+function formulaUniversal(tipo){if(!seleccionados.length)throw new Error('Selecciona personajes primero.');const atom=({todosCab:'cab',ningunoCab:'tru',todosTru:'tru',ningunoTru:'cab'})[tipo];return seleccionados.map(p=>`${atom}(${p})`).reduce((acc,f)=>acc?`y(${acc}, ${f})`:f,'');}
+function generarCodigo(){
+  if(!seleccionados.length)throw new Error('Selecciona al menos un personaje.');
+  if(!seleccionados.some(p=>(dichos[p]||{}).tipo!=='ninguna'))throw new Error('Añade al menos una declaración para poder resolver el acertijo.');
+  const lines=[`personajes(problema, [${seleccionados.join(', ')}]).`];
+  for(const p of seleccionados){const d=dichos[p]||{tipo:'ninguna'},x=d.x,y=d.y;if(d.tipo==='ninguna')continue;
+    if(['cab','tru'].includes(d.tipo)&&!x)throw new Error(`Completa la declaración de ${p.toUpperCase()}.`);
+    if(['mismo','distinto','si','y','o'].includes(d.tipo)&&(!x||!y))throw new Error(`Completa la declaración de ${p.toUpperCase()}.`);
+    let f;switch(d.tipo){case 'cab':f=`cab(${x})`;break;case 'tru':f=`tru(${x})`;break;case 'mismo':f=`sii(cab(${x}), cab(${y}))`;break;case 'distinto':f=`no(sii(cab(${x}), cab(${y})))`;break;case 'si':f=`si(cab(${x}), cab(${y}))`;break;case 'y':f=`y(cab(${x}), cab(${y}))`;break;case 'o':f=`o(cab(${x}), cab(${y}))`;break;case 'cualquiera':f=`o(tru(${p}), cab(${p}))`;break;case 'exactamente':f=`exactamente(${d.n||1}, [${seleccionados.join(', ')}])`;break;case 'todosCab':case 'ningunoCab':case 'todosTru':case 'ningunoTru':f=formulaUniversal(d.tipo);break;case 'compuesta':f=formulaCompuesta(d);break;default:throw new Error('Selecciona una declaración válida.');}
+    lines.push(`declara(problema, ${p}, ${f}).`);
+  }return lines.join('\n');
+}
+function agregarHecho(){const x=seleccionados[0]||'a';hechos.push({tipo:'cab',x,y:seleccionados[1]||x,n:1});renderHechos();}
+const tiposHecho=[['cab','X es caballero'],['tru','X es truhan'],['mismo','X e Y son del mismo tipo'],['distinto','X e Y son de distinto tipo'],['si','Si X es caballero, Y también'],['y','X e Y son caballeros'],['o','X o Y es caballero'],['cualquiera','Es truhan o caballero'],['exactamente','Exactamente N son truhanes'],['todosCab','Todos son caballeros'],['ningunoCab','Ninguno es caballero'],['todosTru','Todos son truhanes'],['ningunoTru','Ninguno es truhan'],['compuesta','Combinar condiciones con AND / OR']];
+function renderHechos(){
+  const box=document.getElementById('hechos');
+  if(!hechos.length){box.innerHTML='<div class="fact-empty">Todavía no hay hechos. Puedes añadir, por ejemplo, «A es caballero».</div>';return;}
+  box.innerHTML=hechos.map((h,i)=>{
+    const typeSelect=`<select data-fact="${i}" data-field="tipo">${tiposHecho.map(([v,l])=>`<option value="${v}" ${h.tipo===v?'selected':''}>${l}</option>`).join('')}</select>`;
+    let controls='';
+    if(h.tipo==='exactamente')controls=`<select data-fact="${i}" data-field="n">${seleccionados.map((_,j)=>`<option value="${j+1}" ${Number(h.n||1)===j+1?'selected':''}>${j+1}</option>`).join('')}</select> de todos`;
+    else if(['todosCab','ningunoCab','todosTru','ningunoTru'].includes(h.tipo))controls='<span>entre los personajes seleccionados</span>';
+    else if(h.tipo==='compuesta')controls=renderTerminosHecho(h,i);
+    else if(h.tipo==='cualquiera')controls='<span>(siempre cierto para cualquier personaje)</span>';
+    else if(h.tipo==='si')controls=`Si ${factSelect(i,'x',h.x)} es caballero, ${factSelect(i,'y',h.y)} también`;
+    else controls=`${factSelect(i,'x',h.x)}${['mismo','distinto','y','o'].includes(h.tipo)?` y ${factSelect(i,'y',h.y)}`:''}`;
+    return `<div class="fact-row">${typeSelect}<span class="fact-controls">${controls}</span><button type="button" class="remove-btn" data-remove="${i}">Quitar</button></div>`;
+  }).join('');
+  box.querySelectorAll('select').forEach(s=>s.addEventListener('change',actualizarHecho));
+  box.querySelectorAll('[data-remove]').forEach(b=>b.addEventListener('click',()=>{hechos.splice(Number(b.dataset.remove),1);renderHechos();}));
+  box.querySelectorAll('[data-fact-action]').forEach(b=>b.addEventListener('click',()=>accionHecho(b)));
+}
+function renderTerminosHecho(h,i){return `<div class="terms">${(h.terms||[]).map((t,j)=>`<div class="term-row"><select data-fact="${i}" data-field="termType" data-index="${j}"><option value="cab" ${t.tipo==='cab'?'selected':''}>es caballero</option><option value="tru" ${t.tipo==='tru'?'selected':''}>es truhan</option></select>${factSelect(i,`termX${j}`,t.x)}${j<h.terms.length-1?`<select data-fact="${i}" data-field="operator" data-index="${j}"><option value="y" ${h.ops[j]==='y'?'selected':''}>AND · y</option><option value="o" ${h.ops[j]==='o'?'selected':''}>OR · o</option></select>`:''}${h.terms.length>2?`<button type="button" class="remove-btn" data-fact-action="removeTerm" data-fact="${i}" data-index="${j}">×</button>`:''}</div>`).join('')}<button type="button" class="mini-btn" data-fact-action="addTerm" data-fact="${i}">＋ Añadir condición</button></div>`;}
+function factSelect(i,f,v){return `<select data-fact="${i}" data-field="${f}">${opcionesPersonaje(v)}</select>`;}
+function actualizarHecho(e){const i=Number(e.target.dataset.fact),f=e.target.dataset.field,h=hechos[i];if(f==='tipo'){const x=seleccionados[0]||'a',y=seleccionados[1]||x;hechos[i]={tipo:e.target.value,x,y,n:1,terms:[{tipo:'cab',x},{tipo:'tru',x}],ops:['y']};}else if(f==='n')h.n=Number(e.target.value);else if(f==='operator')h.ops[Number(e.target.dataset.index)]=e.target.value;else if(f==='termType')h.terms[Number(e.target.dataset.index)].tipo=e.target.value;else if(f.startsWith('termX'))h.terms[Number(f.slice(5))].x=e.target.value;else h[f]=e.target.value;renderHechos();}
+function accionHecho(b){const i=Number(b.dataset.fact),h=hechos[i],j=Number(b.dataset.index);if(b.dataset.factAction==='addTerm'){h.terms.push({tipo:'cab',x:seleccionados[0]});h.ops.push('y');}else{h.terms.splice(j,1);if(j<h.ops.length)h.ops.splice(j,1);else h.ops.splice(j-1,1);}renderHechos();}
+function generarHechos(){return hechos.map(h=>{let f;if(['todosCab','ningunoCab','todosTru','ningunoTru'].includes(h.tipo))f=formulaUniversal(h.tipo);else if(h.tipo==='exactamente')f=`exactamente(${h.n}, [${seleccionados.join(', ')}])`;else if(h.tipo==='compuesta')f=formulaCompuesta(h);else if(h.tipo==='cualquiera'){const x=seleccionados[0];f=`o(tru(${x}), cab(${x}))`;}else{if(!h.x||!seleccionados.includes(h.x))throw new Error('Elige un personaje activo para cada hecho.');if(['mismo','distinto','si','y','o'].includes(h.tipo)&&(!h.y||!seleccionados.includes(h.y)))throw new Error('Elige dos personajes activos para ese hecho.');switch(h.tipo){case 'cab':case 'tru':f=`${h.tipo}(${h.x})`;break;case 'mismo':f=`sii(cab(${h.x}), cab(${h.y}))`;break;case 'distinto':f=`no(sii(cab(${h.x}), cab(${h.y})))`;break;case 'si':f=`si(cab(${h.x}), cab(${h.y}))`;break;case 'y':f=`y(cab(${h.x}), cab(${h.y}))`;break;case 'o':f=`o(cab(${h.x}), cab(${h.y}))`;break;default:throw new Error('Selecciona un tipo de hecho válido.');}}return parsear(f);});}window.addEventListener('DOMContentLoaded',()=>{renderFormulario();renderHechos();});function resolver() {
+  const resultadoDiv = document.getElementById('resultado');
+  const carga = document.getElementById('carga');
+
+  resultadoDiv.innerHTML = '';
+  carga.style.display = 'block';
+
+  setTimeout(() => {
+    try {
+      const inicio = performance.now();
+      const soluciones = resolverProblema(generarCodigo(), generarHechos());
+      const fin = performance.now();
+
+      carga.style.display = 'none';
+      mostrarResultado(soluciones, fin - inicio);
+    } catch (e) {
+      carga.style.display = 'none';
+      resultadoDiv.innerHTML = `<p style="color:#dc2626; font-weight:600;">Error: ${e.message}</p>`;
+      console.error(e);
+    }
+  }, 10);
+}
+
+function mostrarResultado(soluciones, tiempoMs) {
+  const resultadoDiv = document.getElementById('resultado');
+
+  if (soluciones.length === 0) {
+    resultadoDiv.innerHTML = `
+      <div class="estado none">
+        ❌ No hay solución: el problema es <b>inconsistente</b>.
+      </div>
+      <div class="tiempo">Tiempo: ${tiempoMs.toFixed(2)} ms</div>
+    `;
+    return;
+  }
+
+  let html = '';
+  soluciones.forEach((s, i) => {
+    const lineas = Object.entries(s).map(([nombre, rol]) =>
+      `<span class="role ${rol}"><b>${nombre.toUpperCase()}</b> · ${rol}</span>`
+    ).join('');
+    html += `<div class="solucion">
+      <h3>Solución #${i + 1}</h3>
+      <div class="roles">${lineas}</div>
+    </div>`;
+  });
+
+  const estadoClass = soluciones.length === 1 ? 'unico' : 'multiplo';
+  const estadoTexto = soluciones.length === 1
+    ? '✅ Solución <b>única</b> encontrada.'
+    : `⚠️ Se encontraron <b>${soluciones.length} soluciones posibles</b>.`;
+
+  html += `<div class="estado ${estadoClass}">${estadoTexto}</div>
+    <div class="tiempo">Tiempo: ${tiempoMs.toFixed(2)} ms</div>`;
+  resultadoDiv.innerHTML = html;
+}
+
+function limpiar() {
+  document.getElementById('resultado').innerHTML = '';
+  document.getElementById('carga').style.display = 'none';
+}
+</script>
+
+</body>
+</html>
